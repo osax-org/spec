@@ -94,8 +94,8 @@ returns one venue.
 Nothing else about a venue is shared — no opening hours: a closed venue simply has no free `play`
 times. A client wanting more finds it on the venue's own site.
 
-A response carries the venues its activities refer to, before the activities. `GET /venues` (§4)
-returns the full list for keeping a mapping in sync.
+Venues come only from `GET /venues` (§4), which a client keeps in sync; activities refer to them by
+`venueId` and do not repeat them.
 
 ### 2.1 Resources
 
@@ -189,7 +189,7 @@ grow per sport without a new version.
 | `recurrence` |  | RRULE, e.g. `FREQ=WEEKLY;BYDAY=TU;UNTIL=20270630T000000Z`. `startDate` is the first occurrence. |
 | `status` | R | `announced`, `open`, `closed`, `live`, `paused`, `finished`, `cancelled`, `deleted` (§3.1). |
 | `registrationOpens`, `registrationCloses` |  | ISO 8601 with offset. When `announced` becomes `open`, and `open` becomes `closed`. |
-| `venueId` | R | The `id` of a venue in the same response (§2). |
+| `venueId` | R | The `id` of a venue from `GET /venues` (§2). |
 | `resourceIds` |  | The venue's resources it is played on (§2.1). Exactly one for `play`; for a tournament or americano the courts it uses, or left out when not known. Roof type, surface, walls and court name come from the resource. |
 | `organizer` | R | `name`, `type` (`club`, `federation`, `coach`, `platform`, `person`), `url`. A person only by the public name they agreed to. Optional for `play`. |
 | `federation` |  | The body that sanctions it: `name`, `url`. |
@@ -300,7 +300,6 @@ type except `play`.
 ```json
 {
   "acceptedIssuers": ["knltb.nl", "padelclubexample.nl", "email"],
-  "venues": [ { "id": "4521", "…": "…" } ],
   "activities": [ { "venueId": "4521", "…": "…" } ],
   "next": "https://clubmatch.org/osax/v1/activities?country=NL&sport=padel&page=2",
   "checked": "2026-11-20T16:42:00Z"
@@ -335,15 +334,6 @@ type except `play`.
 ```json
 {
   "acceptedIssuers": ["knltb.nl"],
-  "venues": [
-    { "id": "1", "name": "Padel Club Example", "latitude": 52.0907, "longitude": 5.1214,
-      "country": "NL", "city": "Utrecht", "website": "padelclubexample.nl",
-      "resources": [
-        { "id": "c1", "name": "Court 1", "sports": ["padel"], "roofType": "indoor", "surface": "artificial-grass", "walls": "glass" },
-        { "id": "c2", "name": "Court 2", "sports": ["padel"], "roofType": "indoor", "surface": "artificial-grass", "walls": "concrete" }
-      ],
-      "updated": "2026-09-01T08:00:00Z" }
-  ],
   "activities": [
     { "id": "social-night", "type": "event", "name": "Tuesday social night",
       "description": "Mix-in doubles, new partners every round. Rackets for hire at the bar.",
@@ -374,7 +364,6 @@ No `directBooking`: players sign up at the club's page.
 ```json
 {
   "acceptedIssuers": ["knltb.nl", "email"],
-  "venues": [ { "id": "1", "…": "…" } ],
   "activities": [
     { "id": "play-1-c2-2026-11-20T19:00-90", "type": "play", "name": "Court 2",
       "sport": "padel",
