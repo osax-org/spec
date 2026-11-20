@@ -224,6 +224,16 @@ Every request carries the API key in the `X-Api-Key` header. A publisher answers
 
 `404` keeps its usual meaning: the venue, activity or booking asked for does not exist.
 
+**Errors.** Every error is an HTTP status with `{ "error": "<code>", "message": "<text>" }`. `error` is
+a short code a client can act on; `message` explains it for the developer. A publisher may use its
+own codes. `400` is the catch-all for a request the publisher will not serve; `500` for its own
+failure. For example, free courts asked for over several days:
+
+```
+400
+{ "error": "range-too-large", "message": "Free courts are returned for one day at a time." }
+```
+
 ### 4.1 A club's discovery file
 
 A club can say where its activities are published with a file on its own website, at

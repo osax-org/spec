@@ -306,7 +306,7 @@ type except `play`.
   players, including `email` if it accepts players by email address — usually the same for all
   activities, at least per sport. Used by the Booking interface and the membership check.
 - `next` is absent on the last page. `checked` only with `type=play`.
-- Errors are an HTTP status with `{ "error": "missing-country", "message": "Give a country." }`.
+- Errors as in Overview §4, e.g. `400` with `{ "error": "missing-country", "message": "Give a country." }`.
 
 **Keeping a copy in sync:** fetch everything once, then poll with `updatedSince` = the highest
 `updated` you have seen. Venues (with their resources) sync the same way through `GET
