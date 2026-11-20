@@ -10,8 +10,7 @@ clubs, booking systems, platforms, federations and aggregators. This covers:
 - exchanging match results;
 - identifying players across systems and checking, with the player's consent, their membership of
   a club or federation;
-- the lists these specifications refer to: sports, rating systems with their mapping of levels to
-  percentiles, and court properties. How a level is converted from one rating system to another is
+- the lists these specifications refer to: sports, rating systems and court properties. How a level is converted from one rating system to another is
   left to implementations.
 
 Any changes of Scope are not retroactive.
