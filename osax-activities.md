@@ -148,13 +148,13 @@ grow per sport without a new version.
   "requires": null,
   "prices": [
     { "label": "Member", "amount": 7.50, "currency": "EUR", "per": "participant",
-      "requires": [{ "venueId": "4521" }] },
+      "requires": [{ "venueId": "4521" }], "cancelBeforeHours": 12 },
     { "label": "KNLTB member", "amount": 8.50, "currency": "EUR", "per": "participant",
-      "requires": [{ "federation": "knltb.nl" }] },
-    { "label": "Non-member", "amount": 9.50, "currency": "EUR", "per": "participant" }
+      "requires": [{ "federation": "knltb.nl" }], "cancelBeforeHours": 24 },
+    { "label": "Non-member", "amount": 9.50, "currency": "EUR", "per": "participant",
+      "cancelBeforeHours": 24 }
   ],
   "directBooking": true,
-  "cancelBeforeHours": 24,
   "refundIfResold": true,
 
   "url": "https://clubmatch.org/…",
@@ -198,10 +198,9 @@ grow per sport without a new version.
 | `participants` |  | How players sign up and how many: `registration` (`individual` or `team`); `min` (needed for it to go ahead), `max` (leave out = unlimited) and `current` (signed up now). Places left = `max − current`. With `team`, `teamSize` gives the players per team as `min` and `max`; this is separate from `category`. A doubles tournament for 8 to 16 pairs with 11 entered: `{ "registration": "team", "teamSize": { "min": 2, "max": 2 }, "min": 8, "max": 16, "current": 11 }`. For `play`: `max` = players allowed on the booking. |
 | `ageGroup` |  | Youth age group, `U5` to `U21` (Overview §3.4). Leave out = no age limit. |
 | `requires` |  | Members only: the memberships that give access, any one of them is enough (Overview §3.5). Leave out = open to everyone. |
-| `prices` | R | List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), and `requires` for a member price (Overview §3.5). An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. |
+| `prices` | R | List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), `requires` for a member price (Overview §3.5), and `cancelBeforeHours`, the refund window of that price: a player may cancel for a full refund up to this many hours before the start (e.g. `24`; 3 days = `72`); left out = no refund when the player cancels. An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. An organizer's cancellation is always a full refund (Booking §2.4). |
 | `directBooking` |  | `true`: a client may book this activity through the Booking interface and take the payment itself. Leave out or `false`: players sign up at `url`. Set per activity. |
-| `cancelBeforeHours` |  | Cancellation terms: a player may cancel for a full refund up to this many hours before the start, e.g. `24`. Leave out = no refund when the player cancels. An organizer's cancellation is always a full refund (Booking §2.4). |
-| `refundIfResold` |  | `true`: a player who cancels after the deadline still gets a refund if the place or court is sold again (Booking §2.4). |
+| `refundIfResold` |  | `true`: a player who cancels after their price's `cancelBeforeHours` still gets a refund if the place or court is sold again (Booking §2.4). |
 | `url` | R | Public page where a person reads more and joins. |
 | `joinUrl` |  | Direct link to sign up, if different. |
 | `imageUrl`, `language` |  | `language` as `nl`, `en`, `pt`… |
@@ -382,9 +381,8 @@ No `directBooking`: players sign up at the club's page.
       "timeZone": "Europe/Amsterdam", "status": "open",
       "venueId": "1", "resourceIds": ["c2"],
       "participants": { "registration": "individual", "max": 4 },
-      "prices": [{ "amount": 32, "currency": "EUR", "per": "booking" }],
+      "prices": [{ "amount": 32, "currency": "EUR", "per": "booking", "cancelBeforeHours": 24 }],
       "directBooking": true,
-      "cancelBeforeHours": 24,
       "refundIfResold": true,
       "url": "https://padelclubexample.nl/book?court=2&start=1900",
       "publisher": "Example Booking System",

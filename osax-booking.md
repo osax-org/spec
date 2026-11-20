@@ -15,7 +15,7 @@ this interface only for activities it marks `directBooking: true` (Activities §
 `bookings` in its discovery file (Overview §4). Everything else is booked at the activity's `url`.
 
 **The client handles the money.** The client takes the payment and pays out refunds, following the
-activity's cancellation terms (§3) and the publisher's callbacks (§2.4); the publisher never takes
+refund window of the price booked (§3) and the publisher's callbacks (§2.4); the publisher never takes
 money in this flow.
 
 **One booking per thing paid for.** A booking is what one payment covers, so each can be cancelled
@@ -48,14 +48,15 @@ Base: `https://{host}/osax/v1`, JSON, API key in `X-Api-Key` as for Activities.
 ### 2.1 Personal prices
 
 `GET /activities/{id}?players=knltb.nl:1234567,knltb.nl:7654321,guest` returns the activity with its
-current details plus a `quote`: what each player pays and the total.
+current details plus a `quote`: what each player pays and the total. Each amount carries
+`cancelBeforeHours`, the refund window of the price it comes from (§3).
 
 ```json
 "quote": {
   "players": [
-    { "player": "knltb.nl:1234567", "amount": 7.50, "label": "Member" },
-    { "player": "knltb.nl:7654321", "amount": 8.50, "label": "KNLTB member" },
-    { "player": "guest", "amount": 9.50, "label": "Non-member" }
+    { "player": "knltb.nl:1234567", "amount": 7.50, "label": "Member", "cancelBeforeHours": 12 },
+    { "player": "knltb.nl:7654321", "amount": 8.50, "label": "KNLTB member", "cancelBeforeHours": 24 },
+    { "player": "guest", "amount": 9.50, "label": "Non-member", "cancelBeforeHours": 24 }
   ],
   "total": 25.50,
   "currency": "EUR"
@@ -67,22 +68,23 @@ of an amount.
 
 For a price `per: "booking"` (typical for `play`):
 
-- **Without players** (`GET /activities/{id}`), the quote has only `total`: the booking price.
+- **Without players** (`GET /activities/{id}`), the quote has only `total`, the booking price, with
+  its `cancelBeforeHours`.
 - **With players**, the publisher prices each player as it does for an activity priced per
   participant, and `total` is the sum of their amounts. List everyone who will play; use `guest` for
   a player you don't know.
 - A publisher that can't price players separately leaves out `players` and gives the booking price
-  as `total`. The client then splits it as it likes.
+  as `total`, with its `cancelBeforeHours`. The client then splits it as it likes.
 
 ```
 GET /activities/play-4521-r7-2026-11-20T19:00-90?players=bookingsystem.nl:5521,knltb.nl:1234567,guest,guest
 
 "quote": {
   "players": [
-    { "player": "bookingsystem.nl:5521", "amount": 0, "label": "Member, court included" },
-    { "player": "knltb.nl:1234567", "amount": 8.00, "label": "Non-member" },
-    { "player": "guest", "amount": 8.00, "label": "Non-member" },
-    { "player": "guest", "amount": 8.00, "label": "Non-member" }
+    { "player": "bookingsystem.nl:5521", "amount": 0, "label": "Member, court included", "cancelBeforeHours": 2 },
+    { "player": "knltb.nl:1234567", "amount": 8.00, "label": "Non-member", "cancelBeforeHours": 24 },
+    { "player": "guest", "amount": 8.00, "label": "Non-member", "cancelBeforeHours": 24 },
+    { "player": "guest", "amount": 8.00, "label": "Non-member", "cancelBeforeHours": 24 }
   ],
   "total": 24.00,
   "currency": "EUR"
@@ -131,8 +133,8 @@ After booking, the client takes the payment. If payment fails or is abandoned, t
 with `DELETE /bookings/{bookingId}`; the client is responsible for cancelling, for example with its
 own timer. Returns `204`.
 
-A client also cancels this way when its player cancels, and refunds by the activity's terms (§3): in
-full before the deadline; after it, nothing — unless the activity has `refundIfResold` and a
+A client also cancels this way when its player cancels, and refunds each amount by its own window
+(§3): in full before it; after it, nothing — unless the activity has `refundIfResold` and a
 `resold` callback arrives later.
 
 ### 2.4 Callbacks
@@ -144,7 +146,7 @@ the API key, so the client can trust it. The client finds its own payment by `bo
 | `type` | When | Client does |
 |---|---|---|
 | `cancelled` | The organizer cancelled the activity or this booking. | Refund the booking in full; tell the player(s). An organizer's cancellation is always a full refund. |
-| `resold` | The player cancelled after the deadline, and the place or court was sold again (only for `refundIfResold`). | Refund `refund.amount`. |
+| `resold` | The player cancelled after the refund window, and the place or court was sold again (only for `refundIfResold`). | Refund `refund.amount`. |
 
 ```
 POST https://clubmatch.org/osax/callbacks/bookings
@@ -177,12 +179,14 @@ the Activities feed; the callback is what the client acts on.
 
 ## 3. Cancellation terms
 
-Set per activity in the Activities interface, so the client can show them before the player pays:
+The refund window belongs to the price: it is set per price in the Activities interface (`prices`)
+and returned with each amount in the quote, so the client can show it before the player pays. The
+window that applies is the one in the quote the booking was made at.
 
 | Field | Meaning |
 |---|---|
-| `cancelBeforeHours` | A player may cancel for a full refund up to this many hours before the start (e.g. `24`). Leave out = the player cannot cancel for a refund. |
-| `refundIfResold` | `true`: after the deadline, the player still gets a refund if the place or court is sold again, reported by a `resold` callback. |
+| `cancelBeforeHours` | Per price, and per amount in the quote: a player may cancel for a full refund up to this many hours before the start (e.g. `24`; 3 days = `72`). Leave out = the player cannot cancel for a refund. |
+| `refundIfResold` | Per activity. `true`: after the window, the player still gets a refund if the place or court is sold again, reported by a `resold` callback. |
 
 ## 4. Scenarios
 
@@ -202,8 +206,8 @@ Set per activity in the Activities interface, so the client can show them before
 
 1. The client has the activity from the Activities interface, with `directBooking: true`, and shows
    its cancellation terms.
-2. `GET /activities/{id}?players=…` — show each player their price. For a court, leave out `players`
-   to get the booking price only.
+2. `GET /activities/{id}?players=…` — show each player their price and refund window. For a court,
+   leave out `players` to get the booking price only.
 3. `POST /bookings` with a `callbackUrl` — one per player, or one for a court — and get a
    `bookingId` each.
 4. Take the payment; on failure, `DELETE /bookings/{bookingId}`.
