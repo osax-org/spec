@@ -1,7 +1,7 @@
 # OSAX — Booking interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, memberships, player ID
-issuers, discovery — is in
+issuers, base URL — is in
 [osax.md](osax.md)
 
 This interface lets a client book players into a publisher's activity — a free court (`play`), an
@@ -11,8 +11,8 @@ interface](osax-activities.md), which
 is how the client finds the activities.
 
 **Optional, per activity.** A publisher can share its activities without offering booking. It offers
-this interface only for activities it marks `directBooking: true` (Activities §3), and lists
-`bookings` in its discovery file (Overview §4). Everything else is booked at the activity's `url`.
+this interface only for activities it marks `directBooking: true` (Activities §3); a publisher
+without it answers `501` (Overview §4). Everything else is booked at the activity's `url`.
 
 **The client handles the money.** The client takes the payment and pays out refunds, following the
 activity's cancellation terms (§3) and the publisher's callbacks (§2.4); the publisher never takes
@@ -36,7 +36,7 @@ recognises as a member gets the member price.
 
 ## 2. API
 
-Base: `https://{host}/osax/v1`, JSON, API key in `X-Api-Key` as for Activities.
+Paths are relative to the publisher's base URL; JSON; API key and status codes as in Overview §4.
 
 | Endpoint | Does |
 |---|---|

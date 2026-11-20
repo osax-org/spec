@@ -173,7 +173,7 @@ membership is named as:
 | Membership | Written as | Notes |
 |---|---|---|
 | Club | `{ "venueId": "4521" }` | The publisher's venue id (Activities interface, §2). |
-| Federation | `{ "federation": "knltb.nl" }` | The national federation's web domain. Its discovery file (§4) is at that domain, so a client knows where the player signs in to show the membership. |
+| Federation | `{ "federation": "knltb.nl" }` | The national federation's web domain, where the player signs in to show the membership (§3.6). |
 
 The national federation issues the membership and, optionally, a federation player ID. It can be one
 sport's federation (KNLTB for tennis and padel in the Netherlands) or one body for all sports (the
@@ -193,9 +193,9 @@ player. A player is written as `issuer:id`, for example `knltb.nl:1234567`.
 - **An issuer is named by its web domain.** A federation (`knltb.nl`, `idrettsforbundet.no`), or a
   booking system or club system that issues its own player accounts (`bookingsystem.nl`). There is
   no central list: the domain is the lookup.
-- **Finding where a player signs in.** The issuer's discovery file at
-  `https://{domain}/.well-known/osax.json` (§4) gives in `identity` its OpenID Connect issuer; that
-  issuer's `/.well-known/openid-configuration` says where to send the player to sign in.
+- **Finding where a player signs in.** The issuer's domain is its OpenID Connect issuer:
+  `https://{domain}/.well-known/openid-configuration` says where to send the player to sign in. It
+  may redirect to another host.
 - **`email` is a special issuer.** A publisher that lists `email` in its `acceptedIssuers`
   (Activities interface §4.2) accepts players by email address, without identity management: the
   caller sends `email:jan@example.nl` with the player's name. Nobody vouches for an email address,
@@ -205,42 +205,50 @@ player. A player is written as `issuer:id`, for example `knltb.nl:1234567`.
 - A publisher lists the issuers it accepts in `acceptedIssuers`; a caller uses one of those to get
   personal prices and to book (Booking interface).
 
-## 4. Discovery
+## 4. Base URL and responses
 
-A publisher or issuer puts a small file at `https://{host}/.well-known/osax.json`:
+A publisher's interfaces live under one base URL, for example
+`https://squashcity.bookingsystem.nl/osax/v1`. All paths in this specification are relative to it:
+`/venues`, `/activities`, `/bookings`, `/me/memberships`. How a client gets a publisher's base URL
+and API key is part of setting up the integration, not of OSAX: a booking system with a subdomain per
+club, for example, builds the base URL from the club's subdomain.
+
+Every request carries the API key in the `X-Api-Key` header. A publisher answers:
+
+| Status | Meaning |
+|---|---|
+| `200` (or as the interface says) | An OSAX response, as the interface specifies. |
+| `401` | No key, or the key is not valid. |
+| `403` | The key is valid but gives no access to this interface or this data. |
+| `501` | The publisher does not offer this interface. |
+
+`404` keeps its usual meaning: the venue, activity or booking asked for does not exist.
+
+### 4.1 A club's discovery file
+
+A club can say where its activities are published with a file on its own website, at
+`https://{club domain}/.well-known/osax.json`:
 
 ```json
 {
-  "publisher": "ClubMatch",
-  "url": "https://clubmatch.org",
-  "version": "0.3",
-  "activities": "https://clubmatch.org/osax/v1/activities",
-  "venues": "https://clubmatch.org/osax/v1/venues",
-  "bookings": "https://clubmatch.org/osax/v1/bookings",
-  "identity": "https://clubmatch.org",
-  "memberships": "https://clubmatch.org/osax/v1/me/memberships",
-  "license": "CC-BY-4.0",
-  "terms": "https://clubmatch.org/osax/terms",
-  "apiKeys": "mailto:info@clubmatch.org",
-  "contact": "https://clubmatch.org/contact"
+  "baseUrl": "https://squashcity.bookingsystem.nl/osax/v1",
+  "publisher": "Example Booking System",
+  "venueIds": ["4521"]
 }
 ```
 
-Each interface a publisher does not offer is left out: `activities` and `venues` (Activities),
-`bookings` (Booking), `identity` and `memberships` (Identity and membership; `identity` is the
-OpenID Connect issuer). A federation that only issues player IDs and memberships publishes just
-`identity` and `memberships`.
-
-`license` is the publisher's choice (an SPDX identifier or a URL); CC BY 4.0 is the suggested
-default. `apiKeys` says where to request a key.
+`baseUrl` is required. `publisher` names the system, for display. `venueIds` says which venues at
+that base URL are this club's; leave it out when the base URL serves only this club. The file is
+optional: many club websites cannot serve files under `/.well-known/`, and a booking system may set
+it up for its clubs. It carries no key; access is still arranged with the publisher (§2).
 
 ## 5. Implementers
 
 osax.org keeps a public list of organisations that implement OSAX, with each one's name, website,
-role (publisher, client or both) and discovery file.
+role (publisher, client or both) and base URL.
 
 - **Implementing is free.** Using the specification needs no fee or registration at osax.org. Access
   to a publisher's data is between you and that publisher (API key, §2).
 - **Being listed costs a one-off fee of EUR 1,000 or USD 1,000.** The fee pays for developing and
   maintaining the specification, the sport list and the rating system list.
-- **To join, email info@osax.org.** A publisher's discovery file (§4) must be reachable.
+- **To join, email info@osax.org.** A publisher's interfaces (§4) must be reachable.

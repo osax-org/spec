@@ -1,7 +1,7 @@
 # OSAX — Identity and membership interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
-discovery — is in [osax.md](osax.md)
+base URL — is in [osax.md](osax.md)
 
 This interface lets a player use the account they already have in one system to sign in to
 another, and lets that other system check, with the player's consent, whether the player is a
@@ -31,7 +31,7 @@ Standard OIDC authorization code flow with PKCE.
 1. The client registers with the provider and gets a client ID and a secret. Registration is on
    the provider's terms, like an API key (Overview §2).
 2. The client reads the provider's OIDC settings at `{issuer}/.well-known/openid-configuration`.
-   The `issuer` is the provider's base address and is in its OSAX discovery file (Overview §4).
+   The `issuer` is the provider's domain, as in its player IDs (Overview §3.6).
 
 **At each sign-in:**
 
@@ -138,8 +138,8 @@ booking system.
 **Federation memberships.** Membership of a federation usually runs through a club, so the
 federation's answer names the club or clubs. Some federations also issue a licence to the player
 directly; that is an entry without `clubNumber`. A national federation that offers this interface
-answers for its own members: the player signs in at the federation (found through the discovery
-file at its domain) and the client checks there. A club or booking system may also return the
+answers for its own members: the player signs in at the federation (at its domain, Overview §3.6)
+and the client checks there. A club or booking system may also return the
 federation membership it knows, but the federation is the source.
 
 ### 3.1 Rules

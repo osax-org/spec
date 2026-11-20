@@ -1,7 +1,7 @@
 # OSAX — Activities interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
-categories, age groups, memberships, player ID issuers, discovery — is in
+categories, age groups, memberships, player ID issuers, base URL — is in
 [osax.md](osax.md)
 
 This interface lets a system publish its activities (free court times to play, matches, events,
@@ -268,8 +268,8 @@ to the recurring one.
 
 ## 4. API
 
-Base: `https://{host}/osax/v1`. Read-only, JSON. Every request carries an API key in the `X-Api-Key`
-header; a request without a valid key gets `401`.
+Paths are relative to the publisher's base URL; API key and status codes as in Overview §4.
+Read-only, JSON.
 
 | Endpoint | Returns |
 |---|---|
