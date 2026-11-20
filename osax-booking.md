@@ -40,16 +40,26 @@ Paths are relative to the publisher's base URL; JSON; API key and status codes a
 
 | Endpoint | Does |
 |---|---|
-| `GET /activities/{id}?players=…` | Personal prices for these players (§2.1) |
+| `POST /activities/{id}` | Personal prices for these players (§2.1) |
 | `POST /bookings` | Book the activity (§2.2) |
 | `DELETE /bookings/{bookingId}` | Client cancels a booking (§2.3) |
 | `POST {callbackUrl}` | Publisher tells the client about a cancellation or resale (§2.4) |
 
 ### 2.1 Personal prices
 
-`GET /activities/{id}?players=knltb.nl:1234567,knltb.nl:7654321,guest` returns the activity with its
-current details plus a `quote`: what each player pays, the total, and the activity's refund window
-(`cancelBeforeHours`, §3).
+`POST /activities/{id}` with the players in the body, given as for `POST /bookings` (§2.2), returns
+the activity with its current details plus a `quote`: what each player pays, the total, and the
+activity's refund window (`cancelBeforeHours`, §3). It reserves nothing. Players go in the body,
+never in the URL: player IDs and email addresses are personal data, and URLs end up in logs.
+
+```
+POST /activities/event-77
+{ "players": [
+    { "player": "knltb.nl:1234567" },
+    { "player": "knltb.nl:7654321" },
+    { "player": "guest" }
+] }
+```
 
 ```json
 "quote": {
@@ -77,7 +87,13 @@ For a price `per: "booking"` (typical for `play`):
   as `total`. The client then splits it as it likes.
 
 ```
-GET /activities/play-4521-r7-2026-11-20T19:00-90?players=bookingsystem.nl:5521,knltb.nl:1234567,guest,guest
+POST /activities/play-4521-r7-2026-11-20T19:00-90
+{ "players": [
+    { "player": "bookingsystem.nl:5521" },
+    { "player": "knltb.nl:1234567" },
+    { "player": "guest" },
+    { "player": "guest" }
+] }
 
 "quote": {
   "players": [
@@ -205,8 +221,8 @@ the client can show them before the player pays:
 
 1. The client has the activity from the Activities interface, with `directBooking: true`, and shows
    its cancellation terms.
-2. `GET /activities/{id}?players=…` — show each player their price. For a court, leave out `players`
-   to get the booking price only.
+2. `POST /activities/{id}` with the players — show each player their price. For a court, leave out
+   `players` to get the booking price only.
 3. `POST /bookings` with a `callbackUrl` — one per player, or one for a court — and get a
    `bookingId` each.
 4. Take the payment; on failure, `DELETE /bookings/{bookingId}`.
