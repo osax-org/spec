@@ -18,8 +18,11 @@ Status: **v0.3 draft**.
 ## Taking part
 
 Questions, gaps and proposals are welcome as issues. Changes to the text can be proposed as pull
-requests.
+requests. By contributing you agree to the [Contributor License Agreement](CLA.md).
 
 ## Licence
 
-The specification is licensed under [CC BY 4.0](LICENSE).
+The specification is licensed under the
+[Community Specification License 1.0](https://github.com/CommunitySpecification/1.0), which
+includes a royalty-free patent commitment from contributors within the [Scope](Scope.md). Sample
+code is under BSD 3-Clause. See [License.md](License.md) and [Notices.md](Notices.md).
