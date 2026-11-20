@@ -129,7 +129,6 @@ grow per sport without a new version.
 
   "startDate": "2026-11-20T19:00:00+01:00",
   "endDate": "2026-11-20T20:30:00+01:00",
-  "durationMinutes": 90,
   "timeZone": "Europe/Amsterdam",
   "recurrence": null,
   "status": "open",
@@ -163,7 +162,6 @@ grow per sport without a new version.
   "language": "nl",
   "parentId": "league-789",
 
-  "publisher": "ClubMatch",
   "created": "2026-11-10T08:00:00Z",
   "updated": "2026-11-13T10:12:00Z"
 }
@@ -183,8 +181,7 @@ grow per sport without a new version.
 | `category` |  | Who plays against whom: `PxP`, `M2xM2`, `MFxMF`, `P11xP11`… (Overview §3.3). Leave out when it does not apply (play, lessons, courses). |
 | `tags` |  | Free tags, lowercase: `competitive`, `social`, `beginners`… |
 | `startDate` | R | ISO 8601 with offset. For a league, tournament or course: its first day. |
-| `endDate` |  | ISO 8601 with offset. For a league, tournament or course: its last day. |
-| `durationMinutes` |  | Required when `endDate` is missing. |
+| `endDate` | R | ISO 8601 with offset. For a league, tournament or course: its last day. For a recurring activity: the end of the first occurrence. |
 | `timeZone` | R | IANA, e.g. `Europe/Amsterdam`. |
 | `recurrence` |  | RRULE, e.g. `FREQ=WEEKLY;BYDAY=TU;UNTIL=20270630T000000Z`. `startDate` is the first occurrence. |
 | `status` | R | `announced`, `open`, `closed`, `live`, `paused`, `finished`, `cancelled`, `deleted` (§3.1). |
@@ -206,7 +203,6 @@ grow per sport without a new version.
 | `joinUrl` |  | Direct link to sign up, if different. |
 | `imageUrl`, `language` |  | `language` as `nl`, `en`, `pt`… |
 | `parentId` |  | The league, tournament or recurring activity this belongs to. |
-| `publisher` | R | Name of the system that published it. |
 | `created`, `updated` | R (`updated`) | UTC. `updated` changes on every change. |
 
 **Members only and member prices.** A client uses `requires` to show the right price and to tell a
@@ -348,7 +344,6 @@ type except `play`.
         { "label": "Guest", "amount": 7.50, "currency": "EUR" }
       ],
       "url": "https://padelclubexample.nl/social-night",
-      "publisher": "Example Booking System",
       "updated": "2026-09-01T08:00:00Z" }
   ]
 }
@@ -367,7 +362,7 @@ No `directBooking`: players sign up at the club's page.
   "activities": [
     { "id": "play-1-c2-2026-11-20T19:00-90", "type": "play", "name": "Court 2",
       "sport": "padel",
-      "startDate": "2026-11-20T19:00:00+01:00", "durationMinutes": 90,
+      "startDate": "2026-11-20T19:00:00+01:00", "endDate": "2026-11-20T20:30:00+01:00",
       "timeZone": "Europe/Amsterdam", "status": "open",
       "venueId": "1", "resourceIds": ["c2"],
       "participants": { "registration": "individual", "max": 4 },
@@ -376,7 +371,6 @@ No `directBooking`: players sign up at the club's page.
       "cancelBeforeHours": 24,
       "refundIfResold": true,
       "url": "https://padelclubexample.nl/book?court=2&start=1900",
-      "publisher": "Example Booking System",
       "updated": "2026-11-20T16:42:00Z" }
   ],
   "checked": "2026-11-20T16:42:00Z"
