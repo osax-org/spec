@@ -60,9 +60,9 @@ what it wants to allow.
 
 | Interface | What it does | Who offers it |
 |---|---|---|
-| [Activities](https://sportconnexions.com/doc/osax-activities-interface-v0-3-draft-5w5xdrzjs4) | Publish free court times, matches, events, tournaments, leagues, lessons and courses, with their venues and courts; others retrieve, cache and filter them | Booking systems, league and tournament platforms, federations |
-| [Booking](https://sportconnexions.com/doc/osax-booking-interface-v0-3-draft-5mdcnfdkrz) | Optional: let a client get personal prices, book players into an activity and take the payment itself, and cancel | Publishers willing to let others book, per activity |
-| [Identity and membership](https://sportconnexions.com/doc/osax-identity-and-membership-interface-v-qxjzpxrphp) | Let a player sign in with an account they already have (OpenID Connect) and, with their consent, check their club and federation memberships | Systems that hold player accounts and memberships |
+| [Activities](osax-activities.md) | Publish free court times, matches, events, tournaments, leagues, lessons and courses, with their venues and courts; others retrieve, cache and filter them | Booking systems, league and tournament platforms, federations |
+| [Booking](osax-booking.md) | Optional: let a client get personal prices, book players into an activity and take the payment itself, and cancel | Publishers willing to let others book, per activity |
+| [Identity and membership](osax-identity.md) | Let a player sign in with an account they already have (OpenID Connect) and, with their consent, check their club and federation memberships | Systems that hold player accounts and memberships |
 
 Many clubs will share activities but not allow booking through another platform: they implement
 Activities only.
@@ -86,7 +86,7 @@ reach parties the source never gave a key to.
 
 Lowercase English names, words joined by `-`, for example `tennis`, `padel`, `table-tennis`. The
 list of sports is kept by osax.org in a separate document, so it can grow without a new version of
-this specification: https://sportconnexions.com/doc/osax-sports-and-rating-systems-pnc34r7q24
+this specification: [osax-lists.md](osax-lists.md)
 
 A sport is listed only when it has an international federation and **at least one listed rating
 system** (§3.2). To add a sport, email info@osax.org with its proposed name, its international

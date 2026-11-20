@@ -1,7 +1,7 @@
 # OSAX — Identity and membership interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
-discovery — is at https://sportconnexions.com/doc/osax-open-sports-activity-exchange-v0-3-d5dbfp6dcb
+discovery — is in [osax.md](osax.md)
 
 This interface lets a player use the account they already have in one system to sign in to
 another, and lets that other system check, with the player's consent, whether the player is a

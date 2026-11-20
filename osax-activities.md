@@ -1,13 +1,13 @@
 # OSAX — Activities interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
-categories, age groups, memberships, player ID issuers, discovery — is at
-https://sportconnexions.com/doc/osax-open-sports-activity-exchange-v0-3-d5dbfp6dcb
+categories, age groups, memberships, player ID issuers, discovery — is in
+[osax.md](osax.md)
 
 This interface lets a system publish its activities (free court times to play, matches, events,
 tournaments, leagues, lessons, courses) with their venues and courts, and lets others retrieve them.
 Booking players in directly is a separate, optional interface:
-[Booking](https://sportconnexions.com/doc/osax-booking-interface-v0-3-draft-5mdcnfdkrz).
+[Booking](osax-booking.md).
 
 **Retrieve, cache, filter at the client.** The API is for retrieving activities and keeping a copy
 in sync, not for searching. A client fetches the activities for the countries and sports it serves,
@@ -103,7 +103,7 @@ A resource is one bookable place to play at a venue: a court, lane, table, tee o
 rarely change, so they are shared with the venue and synced with it; activities refer to them by
 `resourceIds`. The values for `roofType`, `surface` and `walls` are kept in the list of [sports,
 rating systems and court
-properties](https://sportconnexions.com/doc/osax-sports-and-rating-systems-pnc34r7q24), so they can
+properties](osax-lists.md), so they can
 grow per sport without a new version.
 
 | Field | R | Notes |

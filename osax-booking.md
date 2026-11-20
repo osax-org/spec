@@ -1,13 +1,13 @@
 # OSAX — Booking interface — v0.3 draft
 
 Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, memberships, player ID
-issuers, discovery — is at
-https://sportconnexions.com/doc/osax-open-sports-activity-exchange-v0-3-d5dbfp6dcb
+issuers, discovery — is in
+[osax.md](osax.md)
 
 This interface lets a client book players into a publisher's activity — a free court (`play`), an
 event, a lesson, a place in an open match — and take the payment itself, instead of sending players
 to the publisher's page. It builds on the [Activities
-interface](https://sportconnexions.com/doc/osax-activities-interface-v0-3-draft-5w5xdrzjs4), which
+interface](osax-activities.md), which
 is how the client finds the activities.
 
 **Optional, per activity.** A publisher can share its activities without offering booking. It offers
