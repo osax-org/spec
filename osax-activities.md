@@ -352,9 +352,9 @@ type except `play`.
 No `minLevel` or `maxLevel`: all levels are welcome. No `ratedIn`: social play counts for no rating.
 No `directBooking`: players sign up at the club's page.
 
-### 6.2 A free court time
+### 6.2 Free court times
 
-`GET /activities?type=play&venueId=1&date=2026-11-20&fromTime=19:00&toTime=20:00`:
+`GET /activities?type=play&venueId=1&date=2026-11-20&fromTime=19:00&toTime=21:00`:
 
 ```json
 {
@@ -371,11 +371,24 @@ No `directBooking`: players sign up at the club's page.
       "cancelBeforeHours": 24,
       "refundIfResold": true,
       "url": "https://padelclubexample.nl/book?court=2&start=1900",
+      "updated": "2026-11-20T16:42:00Z" },
+    { "id": "play-1-c1-2026-11-20T19:30-90", "type": "play", "name": "Court 1",
+      "sport": "padel",
+      "startDate": "2026-11-20T19:30:00+01:00", "endDate": "2026-11-20T21:00:00+01:00",
+      "timeZone": "Europe/Amsterdam", "status": "open",
+      "venueId": "1", "resourceIds": ["c1"],
+      "participants": { "registration": "individual", "max": 4 },
+      "prices": [{ "amount": 36, "currency": "EUR", "per": "booking" }],
+      "directBooking": true,
+      "cancelBeforeHours": 24,
+      "refundIfResold": true,
+      "url": "https://padelclubexample.nl/book?court=1&start=1930",
       "updated": "2026-11-20T16:42:00Z" }
   ],
   "checked": "2026-11-20T16:42:00Z"
 }
 ```
 
-The court can be cancelled free of charge until 24 hours before; after that, the player is refunded
-only if the court is booked again.
+Two free courts between 19:00 and 21:00, each 90 minutes; Court 1 starts in peak time and costs more.
+Both can be cancelled free of charge until 24 hours before; after that, the player is refunded only
+if the court is booked again.
