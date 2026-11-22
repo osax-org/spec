@@ -1,7 +1,7 @@
 # OSAX — Booking interface — v0.3 draft
 
-Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, memberships, player ID
-issuers, base URL — is in
+Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, memberships, player IDs,
+base URL — is in
 [osax.md](osax.md)
 
 This interface lets a client book players into a publisher's activity — a free court (`play`), an
@@ -28,10 +28,10 @@ and refunded on its own:
 
 ## 1. Identifying players
 
-Players are given as `issuer:id` (Overview §3.6), using an issuer from the publisher's
-`acceptedIssuers` (Activities §4.2): a federation (`knltb.nl:1234567`), the publisher's own accounts
-(`bookingsystem.nl:5521`), or `email` with the player's name (`email:jan@example.nl`). `guest`
-stands for a player who is not identified. The issuer decides the price: a player the publisher
+Players are given by player ID (Overview §3.6), of a kind in the publisher's `playerIds`
+(Activities §4.2): a federation (`knltb.nl:1234567`), the publisher's own accounts
+(`bookingsystem.nl:5521`), or an email address with the player's name (`jan@example.nl`). `guest`
+stands for a player who is not identified. The player ID decides the price: a player the publisher
 recognises as a member gets the member price.
 
 ## 2. API
@@ -87,7 +87,7 @@ For a price `per: "booking"` (typical for `play`):
   as `total`. The client then splits it as it likes.
 
 ```
-POST /activities/play-4521-r7-2026-11-20T19:00-90
+POST /activities/play-4521-p1-2026-11-20T19:00-90
 { "players": [
     { "player": "bookingsystem.nl:5521" },
     { "player": "knltb.nl:1234567" },
@@ -122,15 +122,15 @@ Priced per booking — with the players on the court, or without them:
 
 ```
 POST /bookings
-{ "activityId": "play-4521-r7-2026-11-20T19:00-90",
+{ "activityId": "play-4521-p1-2026-11-20T19:00-90",
   "players": [
     { "player": "knltb.nl:1234567" },
-    { "player": "email:jan@example.nl", "name": "Jan de Vries" }
+    { "player": "jan@example.nl", "name": "Jan de Vries" }
   ],
   "callbackUrl": "https://clubmatch.org/osax/callbacks/bookings" }
 
 POST /bookings
-{ "activityId": "play-4521-r7-2026-11-20T19:00-90",
+{ "activityId": "play-4521-p1-2026-11-20T19:00-90",
   "callbackUrl": "https://clubmatch.org/osax/callbacks/bookings" }
 ```
 
@@ -171,14 +171,12 @@ POST https://clubmatch.org/osax/callbacks/bookings
   "activityId": "event-77",
   "reasonCode": "rescheduled",
   "reason": "Moved to Sunday because of the club championship",
-  "replacementActivityId": "event-81",
-  "at": "2026-11-19T18:00:00Z" }
+  "replacementActivityId": "event-81" }
 
 { "type": "resold",
   "bookingId": "b-88214",
-  "activityId": "play-4521-r7-2026-11-20T19:00-90",
-  "refund": { "amount": 32, "currency": "EUR" },
-  "at": "2026-11-20T10:15:00Z" }
+  "activityId": "play-4521-p1-2026-11-20T19:00-90",
+  "refund": { "amount": 32, "currency": "EUR" } }
 ```
 
 `reasonCode` (with `cancelled`, required) is one of:

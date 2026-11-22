@@ -19,8 +19,9 @@ new version of the specification.
 ## Sports
 
 A sport is listed only when it has an international federation and **at least one listed rating
-system**. To submit one, email info@osax.org with its proposed name, its international federation
-and the rating system that covers it.
+system**. To submit one, open an issue at
+[github.com/osax-org/spec](https://github.com/osax-org/spec/issues) with its proposed name, its
+international federation and the rating system that covers it.
 
 | `sport` | International federation |
 |---|---|
@@ -45,7 +46,7 @@ Names are fixed once published. Where a name could mean two sports, the federati
 A rating system is listed only when its organisation provides a **percentile table**: for at least 5
 levels, the share of rated players at that level or lower. The system also needs at least 1,000
 rated players, and an OSAX-compliant API from its provider that lists activities with levels in it.
-To submit one, email info@osax.org.
+To submit one, open an issue at [github.com/osax-org/spec](https://github.com/osax-org/spec/issues).
 
 ### ClubMatch
 
@@ -74,13 +75,15 @@ percentile is the equivalent.
 
 ## Court properties
 
-Values for a resource's `roofType`, `surface` and `walls` (Activities interface §2.1). Each is
-optional on a resource. To add a value, email info@osax.org with the sport and a short description.
+Values for a resource's `roof`, `surface` and `walls` (Activities interface §2.1). Each is
+optional on a resource. To add a value, open an issue at
+[github.com/osax-org/spec](https://github.com/osax-org/spec/issues) with the sport and a short
+description.
 Values are lowercase, words joined by `-`, and fixed once published.
 
 ### Roof types (all sports)
 
-| `roofType` | Meaning |
+| `roof` | Meaning |
 |---|---|
 | `indoor` | In a closed building. |
 | `covered` | Roof overhead, open sides. |

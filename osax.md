@@ -89,8 +89,8 @@ list of sports is kept by osax.org in a separate document, so it can grow withou
 this specification: [osax-lists.md](osax-lists.md)
 
 A sport is listed only when it has an international federation and **at least one listed rating
-system** (§3.2). To add a sport, email info@osax.org with its proposed name, its international
-federation and the rating system that covers it. Names are fixed once published.
+system** (§3.2). To add a sport, open an issue at [github.com/osax-org/spec](https://github.com/osax-org/spec/issues)
+with its proposed name, its international federation and the rating system that covers it. Names are fixed once published.
 
 ### 3.2 Levels
 
@@ -125,7 +125,8 @@ and `maxLevel` welcomes all levels.
 **Short names.** Lowercase, for example `clubmatch`, `wtn`, `knltb`, `squashlevels`, `handicap`. The
 rating systems are kept in the same separate document as the sports.
 
-**Adding a rating system.** Email info@osax.org. A rating system is listed only when:
+**Adding a rating system.** Open an issue at
+[github.com/osax-org/spec](https://github.com/osax-org/spec/issues). A rating system is listed only when:
 
 1. **It has a percentile table:** at least 5 levels, and for each level the percentile of players
    with that rating or lower. A system running from 0 to 10 gives the percentile up to 1, up to 2,
@@ -134,7 +135,7 @@ rating systems are kept in the same separate document as the sports.
 3. **Its provider offers an OSAX-compliant API** (Activities interface) that lists activities with
    levels in it.
 
-The submission also states the short name, the sports it covers, its range and its direction
+The issue also states the short name, the sports it covers, its range and its direction
 (whether higher or lower is better).
 
 ### 3.3 Categories
@@ -172,7 +173,7 @@ membership is named as:
 
 | Membership | Written as | Notes |
 |---|---|---|
-| Club | `{ "venueId": "4521" }` | The publisher's venue id (Activities interface, §2). |
+| Club | `{ "venueIds": ["4521"] }` | The publisher's venue ids (Activities interface, §2); a member of any listed venue qualifies. |
 | Federation | `{ "federation": "knltb.nl" }` | The national federation's web domain, where the player signs in to show the membership (§3.6). |
 
 The national federation issues the membership and, optionally, a federation player ID. It can be one
@@ -185,25 +186,31 @@ Several entries mean any one of them is enough. Federation membership is optiona
 activity that requires it says so, and the player can check their membership with the federation
 (Identity and membership interface).
 
-### 3.6 Player ID issuers
+### 3.6 Player IDs
 
-A player is identified across systems by an ID from an **issuer**: the system that vouches for that
-player. A player is written as `issuer:id`, for example `knltb.nl:1234567`.
+A player is identified across systems by a **player ID**, written as one string:
 
-- **An issuer is named by its web domain.** A federation (`knltb.nl`, `idrettsforbundet.no`), or a
-  booking system or club system that issues its own player accounts (`bookingsystem.nl`). There is
-  no central list: the domain is the lookup.
-- **Finding where a player signs in.** The issuer's domain is its OpenID Connect issuer:
+| Kind | Example | Rule |
+|---|---|---|
+| Federation or system ID | `knltb.nl:1234567` | `domain:id`, split at the first colon. |
+| Email address | `jan@example.nl` | Written bare; a string containing `@` is an email address. |
+| Not identified | `guest` | A player nobody identifies. |
+
+- **A domain names the system that vouches for the player.** A federation (`knltb.nl`,
+  `idrettsforbundet.no`), or a booking system or club system that issues its own player accounts
+  (`bookingsystem.nl`). There is no central list: the domain is the lookup.
+- **Finding where a player signs in.** The domain is its OpenID Connect issuer:
   `https://{domain}/.well-known/openid-configuration` says where to send the player to sign in. It
   may redirect to another host.
-- **`email` is a special issuer.** A publisher that lists `email` in its `acceptedIssuers`
-  (Activities interface §4.2) accepts players by email address, without identity management: the
-  caller sends `email:jan@example.nl` with the player's name. Nobody vouches for an email address,
-  so the player normally gets the non-member price unless the publisher recognises the address as
-  one of its own members. The caller shares a player's name and email only with the player's
-  consent.
-- A publisher lists the issuers it accepts in `acceptedIssuers`; a caller uses one of those to get
-  personal prices and to book (Booking interface).
+- **An email address is a player ID nobody vouches for.** A publisher that lists `email` in its
+  `playerIds` (Activities interface §4.2) accepts players by email address, without identity
+  management: the caller sends `jan@example.nl` with the player's name. Because nobody vouches for an
+  email address, the player normally gets the non-member price unless the publisher recognises the
+  address as one of its own members. The caller shares a player's name and email only with the
+  player's consent.
+- A publisher lists the player IDs it accepts in `playerIds`: the domains, its own written out, and
+  `email` if it accepts email addresses — for example `["bookingsystem.nl", "knltb.nl", "email"]`.
+  A caller uses one of those to get personal prices and to book (Booking interface).
 
 ## 4. Base URL and responses
 
@@ -252,13 +259,28 @@ that base URL are this club's; leave it out when the base URL serves only this c
 optional: many club websites cannot serve files under `/.well-known/`, and a booking system may set
 it up for its clubs. It carries no key; access is still arranged with the publisher (§2).
 
-## 5. Implementers
+## 5. Members
 
-osax.org keeps a public list of organisations that implement OSAX, with each one's name, website,
-role (publisher, client or both) and base URL.
+osax.org keeps a public list of members: organisations that implement OSAX, with each one's name,
+website, role (publisher, client or both) and base URL.
 
 - **Implementing is free.** Using the specification needs no fee or registration at osax.org. Access
   to a publisher's data is between you and that publisher (API key, §2).
-- **Being listed costs a one-off fee of EUR 1,000 or USD 1,000.** The fee pays for developing and
+- **Membership costs a one-off fee of EUR 1,000 or USD 1,000.** The fee pays for developing and
   maintaining the specification, the sport list and the rating system list.
-- **To join, email info@osax.org.** A publisher's interfaces (§4) must be reachable.
+- **Membership gives no extra say in the specification.** Decisions are open to every contributor,
+  member or not (§6).
+- **To become a member, email info@osax.org.** A publisher's interfaces (§4) must be reachable.
+
+## 6. Governance
+
+The specification is developed in the open at [github.com/osax-org/spec](https://github.com/osax-org/spec),
+under the Community Specification Governance Policy 1.0, which the
+[Contributor License Agreement](CLA.md) adopts.
+
+- **Anyone can contribute,** free of charge: questions, gaps and proposals as issues, changes to the
+  text as pull requests. A contributor is a participant in the sense of that policy.
+- **Decisions are made by consensus of the participants,** including the content and releases of
+  the specification. Full agreement is preferred but not required.
+- **The maintainers** review and merge pull requests and determine when consensus is reached. New
+  maintainers are chosen with the participants' approval. A decision can be appealed through an issue.
