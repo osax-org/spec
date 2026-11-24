@@ -181,8 +181,8 @@ grow per sport without a new version.
 
   "venueIds": ["4521"],
   "resourceIds": ["t1"],
-  "organizer": { "name": "Padel Club Example", "type": "club", "url": "https://padelclubexample.nl" },
-  "federation": { "name": "KNLTB", "url": "https://www.knltb.nl" },
+  "organizer": "padelclubexample.nl",
+  "federation": "knltb.nl",
 
   "minLevel": ["clubmatch:3.0", "wtn:18"],
   "maxLevel": ["clubmatch:4.0", "wtn:24"],
@@ -233,14 +233,14 @@ grow per sport without a new version.
 | `status` | R | `announced`, `open`, `closed`, `live`, `paused`, `finished`, `cancelled`, `deleted` (§3.1). |
 | `venueIds` | R | The `id`s of the venues from `GET /venues` (§2) where it is played. Exactly one for `play`. A league or tournament across clubs lists them all (`["4521", "4533", "4610"]`); its matches keep their own `venueIds`. |
 | `resourceIds` |  | The venue's resources it is played on (§2.1); only when `venueIds` has exactly one entry, since resource IDs are unique within a venue. Exactly one for `play`; for a tournament or americano the courts it uses, or left out when not known. Roof, surface, walls and court name come from the resource. |
-| `organizer` | R | `name`, `type` (`club`, `federation`, `coach`, `platform`, `person`), `url`. A person only by the public name they agreed to. Optional for `play`. |
-| `federation` |  | The body that sanctions it: `name`, `url`. |
+| `organizer` | R | Who runs it, as a web domain: lowercase, no protocol, no `www.` (`padelclubexample.nl`). An organizer without a domain of its own (a coach, a person) is given as the domain plus the path of their own page, in the same form as the venue `website` (§2): `padelclubexample.nl/trainers/jan`. A person only with their consent. Optional for `play`. |
+| `federation` |  | The body that sanctions it, as its web domain, the same domain as in `requires` (Overview §3.5): `knltb.nl`. |
 | `minLevel`, `maxLevel` |  | Level range, one entry per rating system: `"wtn:13"` (Overview §3.2). Leave out = all levels welcome. |
 | `ratedIn` |  | The rating systems the results count for, by short name from the list (Overview §3.2): `["wtn", "clubmatch"]`. Leave out = the results count for no rating. Separate from `minLevel`/`maxLevel`, which only say who is welcome. |
 | `registration` |  | How and how many sign up. `by`: `individual` (players sign up one at a time, e.g. an open doubles match) or `team` (a complete side signs up together, its size and gender as given by `category`). `min` (needed for it to go ahead), `max` (leave out = unlimited) and `current` (signed up now), counted in the unit of `by`: players or teams. Places left = `max − current`. `opens` and `closes`: ISO 8601 with offset, when `announced` becomes `open` and `open` becomes `closed`. A doubles tournament for 8 to 16 pairs with 11 entered: `{ "by": "team", "min": 8, "max": 16, "current": 11 }`. For `play`: `max` = players allowed on the booking. |
 | `ageGroup` |  | Youth age group, `U5` to `U21` (Overview §3.4). Leave out = no age limit. |
 | `requires` |  | Members only: the memberships that give access, any one of them is enough (Overview §3.5). Leave out = open to everyone. |
-| `prices` | R | Required, except on a taken `play` time (§1.1). List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), and `requires` for a member price (Overview §3.5). An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. |
+| `prices` |  | List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), and `requires` for a member price (Overview §3.5). An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. Leave out = price not given: the player sees it at `url`. Required when `directBooking` is `true`, except for `play`, which is always booked as one booking and may get its price from the quote only (Booking §2.1). |
 | `directBooking` |  | `true`: a client may book this activity through the Booking interface and take the payment itself. Leave out or `false`: players sign up at `url`. Set per activity. |
 | `cancelBeforeHours` |  | Cancellation terms: a player may cancel for a full refund up to this many hours before the start, e.g. `24`. Leave out = no refund when the player cancels. An organizer's cancellation is always a full refund (Booking §2.4). |
 | `refundIfResold` |  | `true`: a player who cancels after the deadline still gets a refund if the place or court is sold again (Booking §2.4). |
@@ -380,7 +380,7 @@ Every status except `deleted` is returned, which comes only with `updatedSince`;
       "startDate": "2026-09-01T19:30:00+02:00", "endDate": "2026-09-01T22:00:00+02:00",
       "timeZone": "Europe/Amsterdam", "recurrence": "FREQ=WEEKLY;BYDAY=TU",
       "status": "open", "venueIds": ["1"], "resourceIds": ["c1", "c2"],
-      "organizer": { "name": "Padel Club Example", "type": "club", "url": "https://padelclubexample.nl" },
+      "organizer": "padelclubexample.nl",
       "registration": { "by": "individual", "min": 8, "max": 24, "current": 17 },
       "prices": [
         { "label": "Member", "amount": 0, "currency": "EUR", "requires": [{ "venueIds": ["1"] }] },

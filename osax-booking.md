@@ -79,7 +79,8 @@ of an amount.
 
 For a price `per: "booking"` (typical for `play`):
 
-- **Without players** (`GET /activities/{id}`), the quote has only `total`: the booking price.
+- **Without players** (`POST /activities/{id}` with no `players`), the quote has only `total`: the booking price. A
+  free court without `prices` (Activities §3) gets its price this way.
 - **With players**, the publisher prices each player as it does for an activity priced per
   participant, and `total` is the sum of their amounts. List everyone who will play; use `guest` for
   a player you don't know.
