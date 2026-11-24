@@ -51,6 +51,10 @@ A `play` activity is an ordinary activity (§3), with these differences:
 - **Not cached, not synced.** Never returned in country-wide retrieval or with `updatedSince`.
 - **One entry per resource, start and length:** exactly one `resourceId`; a start time with several
   lengths gives one entry per length.
+- **Taken times too.** A publisher may also list the times a resource is taken, so a client can tell
+  a full venue from a closed one: one entry per resource and taken span, with `status: "closed"`, no
+  `prices` and no `directBooking`. Consecutive taken times form one span. Free entries are `open`. A
+  time with no entry is a time the resource is not open.
 - **The ID is made up by the publisher** from venue, resource, start and length (e.g.
   `play-4521-p1-2026-11-20T19:00-90`); nothing is stored until it is booked.
 - **Not passed on:** a client shows them to its own users only (Overview §2).
@@ -228,7 +232,7 @@ grow per sport without a new version.
 | `registration` |  | How and how many sign up. `by`: `individual` (players sign up one at a time, e.g. an open doubles match) or `team` (a complete side signs up together, its size and gender as given by `category`). `min` (needed for it to go ahead), `max` (leave out = unlimited) and `current` (signed up now), counted in the unit of `by`: players or teams. Places left = `max − current`. `opens` and `closes`: ISO 8601 with offset, when `announced` becomes `open` and `open` becomes `closed`. A doubles tournament for 8 to 16 pairs with 11 entered: `{ "by": "team", "min": 8, "max": 16, "current": 11 }`. For `play`: `max` = players allowed on the booking. |
 | `ageGroup` |  | Youth age group, `U5` to `U21` (Overview §3.4). Leave out = no age limit. |
 | `requires` |  | Members only: the memberships that give access, any one of them is enough (Overview §3.5). Leave out = open to everyone. |
-| `prices` | R | List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), and `requires` for a member price (Overview §3.5). An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. |
+| `prices` | R | Required, except on a taken `play` time (§1.1). List price. One entry per tier: `label`, `amount`, `currency`, `per` (`participant` default, `team`, `booking` for the whole booking), and `requires` for a member price (Overview §3.5). An entry without `requires` is for everyone. A player pays the lowest price whose `requires` they meet. Free = one entry with `amount: 0`. |
 | `directBooking` |  | `true`: a client may book this activity through the Booking interface and take the payment itself. Leave out or `false`: players sign up at `url`. Set per activity. |
 | `cancelBeforeHours` |  | Cancellation terms: a player may cancel for a full refund up to this many hours before the start, e.g. `24`. Leave out = no refund when the player cancels. An organizer's cancellation is always a full refund (Booking §2.4). |
 | `refundIfResold` |  | `true`: a player who cancels after the deadline still gets a refund if the place or court is sold again (Booking §2.4). |
@@ -293,7 +297,7 @@ to the recurring one.
   until registration ends.
 - **A new date is an update**, not a status: change `startDate` and `updated`.
 - Not every type uses every status: a match is typically `open` → `closed` → `live` → `finished`; a
-  `play` activity is always `open`.
+  `play` activity is `open` when free and `closed` when taken (§1.1).
 
 ## 4. API
 
@@ -385,7 +389,7 @@ No `directBooking`: players sign up at the club's page.
 
 ### 6.2 Free court times
 
-`GET /activities?type=play&venueId=1&firstDate=2026-11-20` (two of the day's free times):
+`GET /activities?type=play&venueId=1&firstDate=2026-11-20` (two of the day's free times and one taken):
 
 ```json
 {
@@ -414,11 +418,19 @@ No `directBooking`: players sign up at the club's page.
       "cancelBeforeHours": 24,
       "refundIfResold": true,
       "url": "https://padelclubexample.nl/book?court=1&start=1930",
+      "updated": "2026-11-20T16:42:00Z" },
+    { "id": "play-1-c1-2026-11-20T17:00-120", "type": "play", "name": "Court 1",
+      "sport": "padel",
+      "startDate": "2026-11-20T17:00:00+01:00", "endDate": "2026-11-20T19:00:00+01:00",
+      "timeZone": "Europe/Amsterdam", "status": "closed",
+      "venueIds": ["1"], "resourceIds": ["c1"],
+      "url": "https://padelclubexample.nl/book?court=1",
       "updated": "2026-11-20T16:42:00Z" }
   ]
 }
 ```
 
 Two free courts between 19:00 and 21:00, each 90 minutes; Court 1 starts in peak time and costs more.
+Court 1 is taken from 17:00 to 19:00.
 Both can be cancelled free of charge until 24 hours before; after that, the player is refunded only
 if the court is booked again.
