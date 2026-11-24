@@ -48,7 +48,15 @@ A `play` activity is an ordinary activity (§3), with these differences:
   day; a range it will not serve gets `400`, e.g. `{ "error": "range-not-served", "message": "Ask for
   one day at a time." }`. A past range returns an empty list. A client asks only for a
   venue and sport whose `types` include `play` (§2).
-- **Not cached, not synced.** Never returned in country-wide retrieval or with `updatedSince`.
+- **Cached per venue and day, never synced country-wide.** A client keeps the answer for a venue and
+  day and answers searches and filters (time, length, court) from that copy, never with a request per
+  page view. Free times are never returned in country-wide retrieval or with `updatedSince`.
+- **The publisher sets how fresh.** It answers with `Cache-Control: max-age=…` (seconds); a client
+  does not ask for the same venue and day again within that time. Without the header: 15 minutes for
+  today, 1 hour for later days.
+- **Checked live on selection.** When a player picks a time, the client checks that one live, with
+  `GET /activities/{id}` or the quote (Booking §2.1). A time taken in the meantime answers `409`, and
+  the client offers another.
 - **One entry per resource, start and length:** exactly one `resourceId`; a start time with several
   lengths gives one entry per length.
 - **Taken times too.** A publisher may also list the times a resource is taken, so a client can tell
