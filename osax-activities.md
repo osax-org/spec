@@ -43,10 +43,11 @@ A `play` activity is an ordinary activity (§3), with these differences:
 
 - **Published only by systems that hold availability** (booking systems, venues), never republished
   from another system.
-- **Retrieved live, one venue, one day:** `GET /activities?type=play&venueId=…&firstDate=…`; optional
+- **Retrieved live, one venue, one day:** `GET /activities?type=play&venue=…&firstDate=…`; optional
   `sport`, and `lastDate` for more than one day (§4.1). Every publisher of play serves at least one
   day; a range it will not serve gets `400`, e.g. `{ "error": "range-not-served", "message": "Ask for
-  one day at a time." }`. A past range returns an empty list. A client asks only for a
+  one day at a time." }`. A past range returns an empty list, and so does a day after
+  `bookableUntil` (§4.2), the last day the answer says can be asked. A client asks only for a
   venue and sport whose `types` include `play` (§2).
 - **Cached per venue and day, never synced country-wide.** A client keeps the answer for a venue and
   day and answers searches and filters (time, length, court) from that copy, never with a request per
@@ -72,17 +73,16 @@ Example: §6.2.
 ## 2. Venues
 
 A venue is where an activity is played: a club, a commercial centre, public courts, a sports hall.
-Every system keeps venues under its own IDs, which mean nothing to another system. So a publisher
-shares the bare minimum a client needs to map each venue **once** to its own record, and every
-activity refers to its venues by the publisher's `venueIds`. How the client matches (exact Google
-Place ID, website, or distance plus name) is up to the client. A system serving one club simply
-returns one venue.
+A venue is identified by its handle (Overview §3.7), the same in every system, so a client maps each
+venue **once** to its own record by the handle, and every activity refers to its venues by their
+handles in `venues`. A venue without a handle has no address in OSAX and is not published. A system
+serving one club simply returns one venue.
 
 ```json
 "venues": [
-  { "id": "4521", "name": "Padel Club Example",
+  { "handle": "padelclubexample.nl", "name": "Padel Club Example",
     "latitude": 52.0907, "longitude": 5.1214, "country": "NL",
-    "city": "Utrecht", "googlePlaceId": "ChIJ…", "website": "padelclubexample.nl",
+    "city": "Utrecht", "googlePlaceId": "ChIJ…",
     "sports": [
       { "sport": "padel", "types": ["play", "event", "lesson"], "resources": [
           { "id": "p1", "name": "Padel 1", "roof": "indoor", "surface": "artificial-grass", "walls": "glass" },
@@ -102,18 +102,18 @@ A chain with one website and a page per location:
 
 ```json
 "venues": [
-  { "id": "801", "name": "Padel Chain Utrecht",
+  { "handle": "padelchain.nl/utrecht", "name": "Padel Chain Utrecht",
     "latitude": 52.0705, "longitude": 5.1003, "country": "NL",
-    "city": "Utrecht", "website": "padelchain.nl/utrecht",
+    "city": "Utrecht",
     "sports": [
       { "sport": "padel", "types": ["play", "event"], "resources": [
           { "id": "p1", "name": "Padel 1", "roof": "indoor", "surface": "artificial-grass", "walls": "glass" },
           { "id": "p2", "name": "Padel 2", "roof": "indoor", "surface": "artificial-grass", "walls": "glass" } ] }
     ],
     "updated": "2026-11-01T09:00:00Z" },
-  { "id": "802", "name": "Padel Chain Amersfoort",
+  { "handle": "padelchain.nl/amersfoort", "name": "Padel Chain Amersfoort",
     "latitude": 52.1561, "longitude": 5.3878, "country": "NL",
-    "city": "Amersfoort", "website": "padelchain.nl/amersfoort",
+    "city": "Amersfoort",
     "sports": [
       { "sport": "padel", "types": ["play", "event"], "resources": [
           { "id": "p1", "name": "Padel 1", "roof": "indoor", "surface": "artificial-grass", "walls": "glass" },
@@ -125,13 +125,12 @@ A chain with one website and a page per location:
 
 | Field | R | Notes |
 |---|---|---|
-| `id` | R | The publisher's own ID; stable. |
+| `handle` | R | Overview §3.7: `padelclubexample.nl`, or `padelchain.nl/utrecht` for one location of a chain. Also the venue's website. |
 | `name` | R |  |
 | `latitude`, `longitude` | R | WGS 84, at least 4 decimals (~10 m). |
 | `country` | R | ISO 3166-1 alpha-2. |
 | `city` |  |  |
-| `googlePlaceId` |  | Exact match for clients that use Google. |
-| `website` |  | The domain, plus the path of the venue's own page when it has one; no protocol and no `www.` (`padelclubexample.nl`, or `padelchain.nl/utrecht` for one location of a chain). The path is the venue's real, working page on that site, not a made-up tag. A client opening it prefixes `https://`. To match, a client compares domain and path; for a chain a domain-only match is not enough, and the client falls back to distance plus name. |
+| `googlePlaceId` |  | For clients that use Google. |
 | `sports` |  | One entry per sport (Overview §3.1) this publisher offers activities in at this venue — not everything the venue has: `sport`; `types`, the activity types (§1) it offers for that sport here; and `resources`, the courts, lanes, tables or tees used for that sport (§2.1). `resources` is required for a sport whose `types` include `play`. |
 | `updated` | R | UTC; changes when any field above changes (resources included), so a client re-maps only changed venues. |
 
@@ -139,7 +138,7 @@ Nothing else about a venue is shared — no opening hours: a closed venue simply
 times. A client wanting more finds it on the venue's own site.
 
 Venues come only from `GET /venues` (§4), which a client keeps in sync; activities refer to them by
-`venueIds` and do not repeat them.
+handle in `venues` and do not repeat them.
 
 ### 2.1 Resources
 
@@ -179,7 +178,7 @@ grow per sport without a new version.
   "recurrence": null,
   "status": "open",
 
-  "venueIds": ["4521"],
+  "venues": ["padelclubexample.nl"],
   "resourceIds": ["t1"],
   "organizer": "padelclubexample.nl",
   "federation": "knltb.nl",
@@ -193,7 +192,7 @@ grow per sport without a new version.
   "requires": null,
   "prices": [
     { "label": "Member", "amount": 7.50, "currency": "EUR", "per": "participant",
-      "requires": [{ "venueIds": ["4521"] }] },
+      "requires": [{ "venues": ["padelclubexample.nl"] }] },
     { "label": "KNLTB member", "amount": 8.50, "currency": "EUR", "per": "participant",
       "requires": [{ "federation": "knltb.nl" }] },
     { "label": "Non-member", "amount": 9.50, "currency": "EUR", "per": "participant" }
@@ -231,10 +230,10 @@ grow per sport without a new version.
 | `timeZone` | R | IANA, e.g. `Europe/Amsterdam`. |
 | `recurrence` |  | RRULE, e.g. `FREQ=WEEKLY;BYDAY=TU;UNTIL=20270630T000000Z`. `startDate` is the first occurrence. |
 | `status` | R | `announced`, `open`, `closed`, `live`, `paused`, `finished`, `cancelled`, `deleted` (§3.1). |
-| `venueIds` | R | The `id`s of the venues from `GET /venues` (§2) where it is played. Exactly one for `play`. A league or tournament across clubs lists them all (`["4521", "4533", "4610"]`); its matches keep their own `venueIds`. |
-| `resourceIds` |  | The venue's resources it is played on (§2.1); only when `venueIds` has exactly one entry, since resource IDs are unique within a venue. Exactly one for `play`; for a tournament or americano the courts it uses, or left out when not known. Roof, surface, walls and court name come from the resource. |
-| `organizer` | R | Who runs it, as a web domain: lowercase, no protocol, no `www.` (`padelclubexample.nl`). An organizer without a domain of its own (a coach, a person) is given as the domain plus the path of their own page, in the same form as the venue `website` (§2): `padelclubexample.nl/trainers/jan`. A person only with their consent. Optional for `play`. |
-| `federation` |  | The body that sanctions it, as its web domain, the same domain as in `requires` (Overview §3.5): `knltb.nl`. |
+| `venues` | R | The handles of the venues (§2) where it is played. Exactly one for `play`. A league or tournament across clubs lists them all (`["padelclubexample.nl", "fransotten.nl", "sportcity.nl/dordrecht"]`); its matches keep their own `venues`. |
+| `resourceIds` |  | The venue's resources it is played on (§2.1); only when `venues` has exactly one entry, since resource IDs are unique within a venue. Exactly one for `play`; for a tournament or americano the courts it uses, or left out when not known. Roof, surface, walls and court name come from the resource. |
+| `organizer` | R* | Who runs it, by handle (Overview §3.7): `padelclubexample.nl`, or for a coach `padelclubexample.nl/trainers/jan`. A person only with their consent. *Left out for `play`, and when the organizer has no handle. |
+| `federation` |  | The body that sanctions it, by handle, the same as in `requires` (Overview §3.5): `knltb.nl`. |
 | `minLevel`, `maxLevel` |  | Level range, one entry per rating system: `"wtn:13"` (Overview §3.2). Leave out = all levels welcome. |
 | `ratedIn` |  | The rating systems the results count for, by short name from the list (Overview §3.2): `["wtn", "clubmatch"]`. Leave out = the results count for no rating. Separate from `minLevel`/`maxLevel`, which only say who is welcome. |
 | `registration` |  | How and how many sign up. `by`: `individual` (players sign up one at a time, e.g. an open doubles match) or `team` (a complete side signs up together, its size and gender as given by `category`). `min` (needed for it to go ahead), `max` (leave out = unlimited) and `current` (signed up now), counted in the unit of `by`: players or teams. Places left = `max − current`. `opens` and `closes`: ISO 8601 with offset, when `announced` becomes `open` and `open` becomes `closed`. A doubles tournament for 8 to 16 pairs with 11 entered: `{ "by": "team", "min": 8, "max": 16, "current": 11 }`. For `play`: `max` = players allowed on the booking. |
@@ -262,7 +261,7 @@ which optional fields.
 how many take part and the level range, not who.
 
 **Participants by player ID.** A caller may ask for the participants of activities, identified by
-the player IDs of one domain (Overview §3.6). With `participants=idrettsforbundet.no` (§4.1), each
+the player IDs of one handle (Overview §3.6). With `participants=idrettsforbundet.no` (§4.1), each
 activity gets `sides`, and a finished match gets `result`:
 
 ```json
@@ -275,13 +274,13 @@ activity gets `sides`, and a finished match gets `result`:
 
 | Field | Notes |
 |---|---|
-| `sides` | One entry per side in a match, or per registered player or team in other activities. Each player is their player ID from the requested domain, as a string (`idrettsforbundet.no:7654321`); a player without one is `null`. |
+| `sides` | One entry per side in a match, or per registered player or team in other activities. Each player is their player ID from the requested handle, as a string (`idrettsforbundet.no:7654321`); a player without one is `null`. |
 | `result` | Finished matches only: `winner` (`1` or `2`, `0` for a draw) and `score` in the sport's usual notation. |
 
-- **Only the domain, or with permission.** The publisher returns participants only when the caller
-  is that domain, or has the publisher's permission for that domain's IDs (set on its API key). Any
+- **Only the handle, or with permission.** The publisher returns participants only when the caller
+  is that handle, or has the publisher's permission for that handle's IDs (set on its API key). Any
   other caller gets `403`.
-- **Only IDs, never names.** A player ID means something only to its domain.
+- **Only IDs, never names.** A player ID means something only to its handle.
 - **The publisher's terms with its players** decide whether a player's ID may be shared at all.
 
 **Recurring activities.** Give one activity a `recurrence`. When occurrences differ (their own
@@ -317,7 +316,7 @@ Read-only, JSON.
 | `GET /activities?…` | Activities to retrieve and keep in sync (§4.1); free court times with `type=play` (§1.1) |
 | `GET /activities/{id}` | One activity, with its current details |
 | `GET /activities.ics?…` | The same activities, as a calendar |
-| `GET /venues?…` | Venues with their sports and resources, for building and syncing a mapping; takes `country`, `sport` (venues with that sport in `sports`), `updatedSince`, `limit`; pages with `next` |
+| `GET /venues?…` | Venues with their sports and resources, for building and syncing a mapping; takes `country`, `sport` (venues with that sport in `sports`), `handle` (one venue; an unknown handle is resolved or answered `404`, Overview §3.7), `updatedSince`, `limit`; pages with `next` |
 
 ### 4.1 Retrieving activities
 
@@ -325,12 +324,12 @@ Read-only, JSON.
 |---|---|---|
 | `country` | `NL` or `NL,BE` | ISO 3166-1, of the activity's venue. Required, except with `type=play`. |
 | `sport` | `padel` or `padel,tennis` | Overview §3.1; exact names only |
-| `type` | `play` or `match,tournament` | §1. `play` cannot be combined with other types and needs `venueId` (§1.1); `venueId` returns the activities whose `venueIds` contain it. |
-| `venueId` | `4521` | Only with `type=play`. |
+| `type` | `play` or `match,tournament` | §1. `play` cannot be combined with other types and needs `venue` (§1.1); `venue` returns the activities whose `venues` contain it. |
+| `venue` | `padelclubexample.nl` | A venue handle; only with `type=play`. An unknown handle is resolved or answered `404` (Overview §3.7). |
 | `firstDate`, `lastDate` | `2026-11-14`, `2026-11-30` | Activities that take place in this range: plain dates, both inclusive, local to the venue. `firstDate` left out = today, except with `updatedSince`, where there is then no start limit; a past `firstDate` also returns finished activities, with their results. `lastDate` left out = no end (with `type=play`: = `firstDate`). |
 | `updatedSince` | `2026-11-13T00:00:00Z` | Only changed activities, including `deleted` ones. Not with `type=play`. |
 | `limit` | `50` | Max 200 |
-| `participants` | `idrettsforbundet.no` | A domain (Overview §3.6). Adds `sides` and `result` (§3, Participants by player ID). |
+| `participants` | `idrettsforbundet.no` | A handle (Overview §3.6, §3.7). Adds `sides` and `result` (§3, Participants by player ID). |
 
 Every status except `deleted` is returned, which comes only with `updatedSince`; a client filters on
 `status` (§3.1) itself. Without `type`, every type except `play`.
@@ -340,14 +339,19 @@ Every status except `deleted` is returned, which comes only with `updatedSince`;
 ```json
 {
   "playerIds": ["knltb.nl", "padelclubexample.nl", "email"],
-  "activities": [ { "venueIds": ["4521"], "…": "…" } ],
+  "activities": [ { "venues": ["padelclubexample.nl"], "…": "…" } ],
   "next": "https://clubmatch.org/osax/v1/activities?country=NL&sport=padel&page=2"
 }
 ```
 
 - `playerIds`: the player IDs (Overview §3.6) this publisher accepts to identify players — the
-  domains, its own written out, and `email` if it accepts players by email address — usually the same for all
+  handles, its own written out, and `email` if it accepts players by email address — usually the same for all
   activities, at least per sport. Used by the Booking interface and the membership check.
+- `bookableUntil`: required in every `type=play` answer. Per sport in the answer, the last day (local
+  to the venue) for which free times can be asked, for whoever asks: the player the request
+  identifies (a member often sees further ahead), otherwise a guest. A client draws its day buttons
+  from today up to this date.
+- `resolved`: present when the request named a handle the publisher resolved to another (Overview §3.7).
 - `next` is absent on the last page.
 - Errors as in Overview §4, e.g. `400` with `{ "error": "missing-country", "message": "Give a country." }`.
 
@@ -361,7 +365,7 @@ Every status except `deleted` is returned, which comes only with `updatedSince`;
    and keep them in sync.
 2. `GET /activities?country=NL&sport=padel` — events, lessons, tournaments and more, with
    `playerIds`; cache them and poll with `updatedSince`.
-3. When a player looks at a venue whose sport lists `play`: `GET /activities?type=play&venueId=…&firstDate=…`
+3. When a player looks at a venue whose sport lists `play`: `GET /activities?type=play&venue=…&firstDate=…`
    — free court times, live.
 4. When a player picks one: `GET /activities/{id}` for current details. If `directBooking`, book
    through the Booking interface; otherwise send the player to `url`.
@@ -379,11 +383,11 @@ Every status except `deleted` is returned, which comes only with `updatedSince`;
       "sport": "padel", "category": "P2xP2", "tags": ["social"],
       "startDate": "2026-09-01T19:30:00+02:00", "endDate": "2026-09-01T22:00:00+02:00",
       "timeZone": "Europe/Amsterdam", "recurrence": "FREQ=WEEKLY;BYDAY=TU",
-      "status": "open", "venueIds": ["1"], "resourceIds": ["c1", "c2"],
+      "status": "open", "venues": ["padelclubexample.nl"], "resourceIds": ["c1", "c2"],
       "organizer": "padelclubexample.nl",
       "registration": { "by": "individual", "min": 8, "max": 24, "current": 17 },
       "prices": [
-        { "label": "Member", "amount": 0, "currency": "EUR", "requires": [{ "venueIds": ["1"] }] },
+        { "label": "Member", "amount": 0, "currency": "EUR", "requires": [{ "venues": ["padelclubexample.nl"] }] },
         { "label": "Guest", "amount": 7.50, "currency": "EUR" }
       ],
       "url": "https://padelclubexample.nl/social-night",
@@ -397,17 +401,18 @@ No `directBooking`: players sign up at the club's page.
 
 ### 6.2 Free court times
 
-`GET /activities?type=play&venueId=1&firstDate=2026-11-20` (two of the day's free times and one taken):
+`GET /activities?type=play&venue=padelclubexample.nl&firstDate=2026-11-20` (two of the day's free times and one taken):
 
 ```json
 {
   "playerIds": ["knltb.nl", "email"],
+  "bookableUntil": { "padel": "2026-12-04" },
   "activities": [
     { "id": "play-1-c2-2026-11-20T19:00-90", "type": "play", "name": "Court 2",
       "sport": "padel",
       "startDate": "2026-11-20T19:00:00+01:00", "endDate": "2026-11-20T20:30:00+01:00",
       "timeZone": "Europe/Amsterdam", "status": "open",
-      "venueIds": ["1"], "resourceIds": ["c2"],
+      "venues": ["padelclubexample.nl"], "resourceIds": ["c2"],
       "registration": { "by": "individual", "max": 4 },
       "prices": [{ "amount": 32, "currency": "EUR", "per": "booking" }],
       "directBooking": true,
@@ -419,7 +424,7 @@ No `directBooking`: players sign up at the club's page.
       "sport": "padel",
       "startDate": "2026-11-20T19:30:00+01:00", "endDate": "2026-11-20T21:00:00+01:00",
       "timeZone": "Europe/Amsterdam", "status": "open",
-      "venueIds": ["1"], "resourceIds": ["c1"],
+      "venues": ["padelclubexample.nl"], "resourceIds": ["c1"],
       "registration": { "by": "individual", "max": 4 },
       "prices": [{ "amount": 36, "currency": "EUR", "per": "booking" }],
       "directBooking": true,
@@ -431,7 +436,7 @@ No `directBooking`: players sign up at the club's page.
       "sport": "padel",
       "startDate": "2026-11-20T17:00:00+01:00", "endDate": "2026-11-20T19:00:00+01:00",
       "timeZone": "Europe/Amsterdam", "status": "closed",
-      "venueIds": ["1"], "resourceIds": ["c1"],
+      "venues": ["padelclubexample.nl"], "resourceIds": ["c1"],
       "url": "https://padelclubexample.nl/book?court=1",
       "updated": "2026-11-20T16:42:00Z" }
   ]
@@ -439,6 +444,6 @@ No `directBooking`: players sign up at the club's page.
 ```
 
 Two free courts between 19:00 and 21:00, each 90 minutes; Court 1 starts in peak time and costs more.
-Court 1 is taken from 17:00 to 19:00.
+Court 1 is taken from 17:00 to 19:00. Padel can be asked up to 4 December for this asker.
 Both can be cancelled free of charge until 24 hours before; after that, the player is refunded only
 if the court is booked again.

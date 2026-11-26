@@ -31,7 +31,7 @@ Standard OIDC authorization code flow with PKCE.
 1. The client registers with the provider and gets a client ID and a secret. Registration is on
    the provider's terms, like an API key (Overview §2).
 2. The client reads the provider's OIDC settings at `{issuer}/.well-known/openid-configuration`.
-   The `issuer` is the provider's domain, as in its player IDs (Overview §3.6).
+   The `issuer` is `https://` plus the provider's handle, as in its player IDs (Overview §3.6, §3.7).
 
 **At each sign-in:**
 
@@ -43,16 +43,19 @@ Standard OIDC authorization code flow with PKCE.
 4. The client's server exchanges the code and its secret for the ID token. No token passes
    through the browser.
 
-**Player identity.** A player is identified by the pair `iss` + `sub` from the ID token: the
-provider's issuer and its stable id for that player. A client stores that pair against its own
-account as the key that links the two, not the email address, which can change. `sub` means
+**Player identity.** A player is identified by their **player ID** at the provider. A provider that
+has its own player IDs (a federation's player number) puts it in the ID token as `osax_player_id`,
+a string; a provider without them leaves the claim out, and the player ID is the `sub`. Either way it
+is stable. Written with the provider's handle and a colon in front, it is the player's full player
+ID (Overview §3.6): `knltb.nl:1234567`. A client stores the full player ID against its own account
+as the key that links the two, not the email address, which can change. The player ID alone means
 nothing outside that provider.
 
 ### 2.1 Scopes
 
 | Scope | Gives the client |
 |---|---|
-| `openid` | Required. The player's `sub`. |
+| `openid` | Required. The player's `sub`, and `osax_player_id` when the provider has its own player IDs. |
 | `profile` | The player's name. |
 | `email` | The player's email address. |
 | `osax.levels` | The player's own levels, as `osax_levels` in the ID token (§2.2). |
@@ -92,7 +95,7 @@ A federation answers with one entry per club the player is a member through:
 {
   "memberships": [
     { "federation": "knltb.nl", "federationName": "KNLTB",
-      "clubNumber": "12345", "clubName": "TV Example", "playerId": "12345678",
+      "clubNumber": "12345", "clubName": "TV Example", "playerId": "1234567",
       "status": "active", "type": "senior", "sports": ["tennis", "padel"],
       "validUntil": "2026-12-31" }
   ],
@@ -106,7 +109,7 @@ the club number:
 ```json
 {
   "memberships": [
-    { "venueId": "4521", "venueName": "Padel Club Example",
+    { "venue": "padelclubexample.nl", "venueName": "Padel Club Example",
       "status": "active", "type": "Adult", "sports": ["padel"],
       "validFrom": "2026-01-01", "validUntil": "2026-12-31" }
   ],
@@ -116,17 +119,17 @@ the club number:
 
 | Field | R | Notes |
 |---|---|---|
-| `federation`, `federationName` | R from a federation | The national federation's web domain, as in `requires` (Overview §3.5). |
+| `federation`, `federationName` | R from a federation | The national federation's handle, as in `requires` (Overview §3.5, §3.7). |
 | `clubNumber`, `clubName` | | From a federation: its own code and name for the club the membership runs through. Left out for a licence the federation issued to the player directly. |
-| `venueId`, `venueName` | R from a club or booking system | The provider's venue id, as in the Activities interface (§2), so the client can match it to the venue it already mapped. |
-| `playerId` | | The ID the federation issued to the player, if it issues one. Optional for the federation and for the player. |
+| `venue`, `venueName` | R from a club or booking system | The venue's handle (Overview §3.7), as in the Activities interface (§2). |
+| `playerId` | | The player's player ID at this provider, the same as `osax_player_id` in the ID token (§2); left out when the provider has no player IDs of its own. |
 | `status` | R | `active`, `pending` (applied, not yet accepted), `suspended` (still a member but not allowed to play, for example unpaid dues or a ban), `expired`. |
 | `type` | | The club's or federation's own name for the membership: `senior`, `junior`, `social`, `Off-peak`… |
 | `sports` | | Sports (Overview §3.1) the membership covers; leave out = all the club or federation covers. |
 | `validFrom`, `validUntil` | | Dates, local to the club or venue. |
 | `checked` | R | UTC; when the answer was produced. |
 
-To check one club only, add `clubNumber=12345` at a federation or `venueId=4521` at a club or
+To check one club only, add `clubNumber=12345` at a federation or `venue=padelclubexample.nl` at a club or
 booking system.
 
 | Answer | Means |
@@ -138,7 +141,7 @@ booking system.
 **Federation memberships.** Membership of a federation usually runs through a club, so the
 federation's answer names the club or clubs. Some federations also issue a licence to the player
 directly; that is an entry without `clubNumber`. A national federation that offers this interface
-answers for its own members: the player signs in at the federation (at its domain, Overview §3.6)
+answers for its own members: the player signs in at the federation (at its handle, Overview §3.6)
 and the client checks there. A club or booking system may also return the
 federation membership it knows, but the federation is the source.
 

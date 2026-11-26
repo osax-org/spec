@@ -61,7 +61,7 @@ what it wants to allow.
 | Interface | What it does | Who offers it |
 |---|---|---|
 | [Activities](osax-activities.md) | Publish free court times, matches, events, tournaments, leagues, lessons and courses, with their venues and courts; others retrieve, cache and filter them | Booking systems, league and tournament platforms, federations |
-| [Booking](osax-booking.md) | Optional: let a client get personal prices, book players into an activity and take the payment itself, and cancel | Publishers willing to let others book, per activity |
+| [Booking](osax-booking.md) | Optional: let a client get personal prices, book players into an activity and take the payment itself, and cancel | Booking systems and other publishers that let others book their venues' courts and activities, per activity |
 | [Identity and membership](osax-identity.md) | Let a player sign in with an account they already have (OpenID Connect) and, with their consent, check their club and federation memberships | Systems that hold player accounts and memberships |
 
 Many clubs will share activities but not allow booking through another platform: they implement
@@ -173,8 +173,8 @@ membership is named as:
 
 | Membership | Written as | Notes |
 |---|---|---|
-| Club | `{ "venueIds": ["4521"] }` | The publisher's venue ids (Activities interface, §2); a member of any listed venue qualifies. |
-| Federation | `{ "federation": "knltb.nl" }` | The national federation's web domain, where the player signs in to show the membership (§3.6). |
+| Club | `{ "venues": ["padelclubexample.nl"] }` | Venue handles (§3.7, Activities interface §2); a member of any listed venue qualifies. |
+| Federation | `{ "federation": "knltb.nl" }` | The national federation's handle (§3.7), where the player signs in to show the membership (§3.6). |
 
 The national federation issues the membership and, optionally, a federation player ID. It can be one
 sport's federation (KNLTB for tennis and padel in the Netherlands) or one body for all sports (the
@@ -188,19 +188,27 @@ activity that requires it says so, and the player can check their membership wit
 
 ### 3.6 Player IDs
 
-A player is identified across systems by a **player ID**, written as one string:
+A player is identified across systems by a **full player ID**: the handle (§3.7) of the system that
+vouches for the player, a colon, and the player's ID in that system. That system hands the ID over
+when the player signs in with it (Identity and membership interface §2): its own player ID, such as
+a federation's player number, as the `osax_player_id` claim, or else the OpenID Connect `sub`.
+Alone, the ID means something only to that system; with the handle in front, it means the same in
+every system.
 
 | Kind | Example | Rule |
 |---|---|---|
-| Federation or system ID | `knltb.nl:1234567` | `domain:id`, split at the first colon. |
+| Full player ID | `knltb.nl:1234567` | `handle:id`, split at the last colon. |
 | Email address | `jan@example.nl` | Written bare; a string containing `@` is an email address. |
 | Not identified | `guest` | A player nobody identifies. |
 
-- **A domain names the system that vouches for the player.** A federation (`knltb.nl`,
+Wherever this specification says "player ID", it means one of these three; where a player is
+identified by a system, that is the full player ID.
+
+- **The handle names the system that vouches for the player.** A federation (`knltb.nl`,
   `idrettsforbundet.no`), or a booking system or club system that issues its own player accounts
-  (`bookingsystem.nl`). There is no central list: the domain is the lookup.
-- **Finding where a player signs in.** The domain is its OpenID Connect issuer:
-  `https://{domain}/.well-known/openid-configuration` says where to send the player to sign in. It
+  (`bookingsystem.nl`). There is no central list: the handle is the lookup.
+- **Finding where a player signs in.** The handle is its OpenID Connect issuer:
+  `https://{handle}/.well-known/openid-configuration` says where to send the player to sign in. It
   may redirect to another host.
 - **An email address is a player ID nobody vouches for.** A publisher that lists `email` in its
   `playerIds` (Activities interface §4.2) accepts players by email address, without identity
@@ -208,9 +216,84 @@ A player is identified across systems by a **player ID**, written as one string:
   email address, the player normally gets the non-member price unless the publisher recognises the
   address as one of its own members. The caller shares a player's name and email only with the
   player's consent.
-- A publisher lists the player IDs it accepts in `playerIds`: the domains, its own written out, and
+- A publisher lists the player IDs it accepts in `playerIds`: the handles, its own written out, and
   `email` if it accepts email addresses — for example `["bookingsystem.nl", "knltb.nl", "email"]`.
   A caller uses one of those to get personal prices and to book (Booking interface).
+
+### 3.7 Entities and handles
+
+An **entity** is anything OSAX refers to by name: a federation, a platform, a club, an operator, a
+venue, an organizer, a system that vouches for players. Each system keeps entities under its own
+internal IDs, which mean nothing to another system. So OSAX identifies every entity by its
+**handle**: the shortest official URL where information about the entity can be found, typically
+its website. A handle is not unique or permanent: two systems may know the same entity under
+different handles, and a handle changes when the entity's website does. But a handle is a URL, so a
+system can follow it and find out which entity is behind it (Resolving a handle, below), and map another
+system's handle to its own record once.
+
+Handles are used for venues (`venues`, Activities interface §2), organizers and federations
+(`organizer`, `federation`), memberships (§3.5), player IDs (§3.6) and a club's discovery file
+(§4.1).
+
+#### Examples
+
+| Entity | Kind | Handle |
+|---|---|---|
+| Deutscher Tennis Bund (Germany) | National federation | `dtb-tennis.de` |
+| Lawn Tennis Association (UK) | National federation | `lta.org.uk` |
+| USTA (US) | National federation | `usta.com` |
+| Tennis Vlaanderen (Belgium) | Regional federation | `tennisvlaanderen.be` |
+| Norwegian Olympic and Paralympic Committee and Confederation of Sports | National federation for all sports | `idrettsforbundet.no` |
+| ClubMatch | League and event platform | `clubmatch.org` |
+| Example Booking System (Germany) | Booking system that issues its own player accounts | `buchungssystem.de` |
+| Frans Otten Stadion (Netherlands) | Single venue with its own website | `fransotten.nl` |
+| Oslo Padel Example (Norway) | Club and its single venue, under one website | `oslopadelexample.no` |
+| Racket Gyms Example (UK) | Operator of many venues | `racketgymsexample.co.uk` |
+| Racket Gyms Manchester, Racket Gyms Leeds (UK) | Two venues of one operator, each with a page on the operator's website | `racketgymsexample.co.uk/manchester`, `racketgymsexample.co.uk/leeds` |
+| Sam, a coach at Austin Pickleball Example (US) | Organizer with a page on the club's website | `austinpickleballexample.com/coaches/sam` |
+
+A club and its venue share one handle when the club has one venue and one website. An operator and
+each of its venues have separate handles: the operator's domain, and a page per venue on it.
+
+#### Writing a handle
+
+- **Only what is needed:** the URL keeps every part needed to reach the entity's page, and drops
+  every part at the start or end that is not: the protocol, a leading `www.`, a trailing `/`, and
+  any query (`?…`), fragment (`#…`) or page name that the page does not need.
+  `https://www.fransotten.nl/` is written `fransotten.nl`; `https://www.racketgymsexample.co.uk/manchester?_uid=284678`
+  is written `racketgymsexample.co.uk/manchester`. A site that shows a venue only through its query keeps it:
+  `clubsite.nl/venue?id=12`. The domain is in lowercase. A client opening a handle prefixes
+  `https://`.
+- **Shortest:** only the domain when the entity has a website of its own. A path only when it does
+  not (a venue of a multi-venue operator, a coach), and then the path of the entity's own real,
+  working page, never a made-up tag.
+- **No handle, no address.** An entity without an official web page of its own, such as a small
+  venue without a website, has no handle and cannot be addressed in OSAX.
+- **Comparing:** two handles that match exactly, as written above, are the same entity. Two that
+  differ may still be the same entity; only resolving tells. For a multi-venue operator, a match on
+  the domain alone is not a match: `racketgymsexample.co.uk` is the operator, not its venue in Manchester.
+- **A handle changes** when the entity's website changes. The publisher then uses the new handle and
+  keeps resolving the old one.
+
+#### Resolving a handle
+
+A system maps a handle it does not know to its own record by following the URL behind it: its
+redirects, the page's canonical URL, or the page itself. It keeps the mapping, so it resolves each
+handle once.
+
+When a request names an entity by a handle the server does not know, the server MAY resolve it this
+way. If it cannot map it to a handle it knows, it answers `404`:
+
+```json
+{ "error": "unknown-handle", "message": "No venue known as fransottenpadel.nl." }
+```
+
+If it can, it answers the request and includes the mapping in the response, so the client can store
+the resolved handle:
+
+```json
+"resolved": { "fransottenpadel.nl": "fransotten.nl" }
+```
 
 ## 4. Base URL and responses
 
@@ -244,18 +327,18 @@ failure. For example, free courts asked for over several days:
 ### 4.1 A club's discovery file
 
 A club can say where its activities are published with a file on its own website, at
-`https://{club domain}/.well-known/osax.json`:
+`https://{club handle}/.well-known/osax.json`:
 
 ```json
 {
   "baseUrl": "https://squashcity.bookingsystem.nl/osax/v1",
-  "publisher": "Example Booking System",
-  "venueIds": ["4521"]
+  "publisher": "bookingsystem.nl",
+  "venues": ["squashcity.nl"]
 }
 ```
 
-`baseUrl` is required. `publisher` names the system, for display. `venueIds` says which venues at
-that base URL are this club's; leave it out when the base URL serves only this club. The file is
+`baseUrl` is required. `publisher` is the publishing system's handle (§3.7). `venues` gives the
+handles of this club's venues at that base URL; leave it out when the base URL serves only this club. The file is
 optional: many club websites cannot serve files under `/.well-known/`, and a booking system may set
 it up for its clubs. It carries no key; access is still arranged with the publisher (§2).
 
