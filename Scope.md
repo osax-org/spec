@@ -1,6 +1,6 @@
 # Scope
 
-The Open Sports Activity Exchange (OSAX): specifications for exchanging sport activities between
+The Open Sports Activity eXchange (OSAX): specifications for exchanging sport activities between
 clubs, booking systems, platforms, federations and aggregators. This covers:
 
 - publishing and retrieving activities (free court times, matches, events, tournaments, leagues,

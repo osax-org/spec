@@ -1,6 +1,6 @@
 # OSAX — Identity and membership interface — v0.3 draft
 
-Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
+Part of OSAX, the Open Sports Activity eXchange. The overview — access rules, sports, levels,
 base URL — is in [osax.md](osax.md)
 
 This interface lets a player use the account they already have in one system to sign in to

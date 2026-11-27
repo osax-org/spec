@@ -1,6 +1,6 @@
 # OSAX — Booking interface — v0.3 draft
 
-Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, memberships, player IDs,
+Part of OSAX, the Open Sports Activity eXchange. The overview — access rules, memberships, player IDs,
 base URL — is in
 [osax.md](osax.md)
 

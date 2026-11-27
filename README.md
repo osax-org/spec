@@ -1,4 +1,4 @@
-# OSAX — Open Sports Activity Exchange
+# OSAX — Open Sports Activity eXchange
 
 An open standard for sharing sport activities (free courts, matches, events, tournaments, leagues,
 lessons, courses) between clubs, platforms, federations and aggregators. Home: [osax.org](https://osax.org).

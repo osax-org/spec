@@ -1,6 +1,6 @@
 # OSAX — Activities interface — v0.3 draft
 
-Part of OSAX, the Open Sports Activity Exchange. The overview — access rules, sports, levels,
+Part of OSAX, the Open Sports Activity eXchange. The overview — access rules, sports, levels,
 categories, age groups, memberships, player IDs, base URL — is in
 [osax.md](osax.md)
 

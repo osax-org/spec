@@ -1,4 +1,4 @@
-# OSAX — Open Sports Activity Exchange — v0.3 draft
+# OSAX — Open Sports Activity eXchange — v0.3 draft
 
 Working name; home: **osax.org**.
 
