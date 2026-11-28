@@ -243,7 +243,7 @@ grow per sport without a new version.
 | `directBooking` |  | `true`: a client may book this activity through the Booking interface and take the payment itself. Leave out or `false`: players sign up at `url`. Set per activity. |
 | `cancelBeforeHours` |  | Cancellation terms: a player may cancel for a full refund up to this many hours before the start, e.g. `24`. Leave out = no refund when the player cancels. An organizer's cancellation is always a full refund (Booking §2.4). |
 | `refundIfResold` |  | `true`: a player who cancels after the deadline still gets a refund if the place or court is sold again (Booking §2.4). |
-| `url` | R | Public page where a person reads more and joins. |
+| `url` | R | Public page where a person reads more and joins. For `play`: the page that books this free time. |
 | `joinUrl` |  | Direct link to sign up, if different. |
 | `imageUrl`, `language` |  | `language` as `nl`, `en`, `pt`… |
 | `parentId` |  | The league, tournament or recurring activity this belongs to. |
@@ -368,7 +368,11 @@ Every status except `deleted` is returned, which comes only with `updatedSince`;
 3. When a player looks at a venue whose sport lists `play`: `GET /activities?type=play&venue=…&firstDate=…`
    — free court times, live.
 4. When a player picks one: `GET /activities/{id}` for current details. If `directBooking`, book
-   through the Booking interface; otherwise send the player to `url`.
+   through the Booking interface; otherwise send the player to `url` (or `joinUrl`).
+
+**Coming back.** A client that sends a player to `url` or `joinUrl` may add `returnUrl` (URL-encoded):
+the page to send the player back to once they have signed up or booked. A publisher that supports it
+sends them there, only to addresses it has agreed with that client; one that does not ignores it.
 
 ## 6. Examples
 
